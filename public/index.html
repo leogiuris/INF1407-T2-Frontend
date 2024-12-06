@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="javascript/script.js" defer></script>
+    <title>CRUD App</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .form-container {
+            margin-bottom: 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>CRUD App</h1>
+    <div class="form-container">
+        <input type="text" id="col_A" placeholder="Column A">
+        <input type="text" id="col_B" placeholder="Column B">
+        <button id="create">Create</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>col_A</th>
+                <th>col_B</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+    <script src="app.js"></script>
+</body>
+
+</html>
