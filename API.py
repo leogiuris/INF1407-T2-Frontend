@@ -1,8 +1,21 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import BaseModel
 from typing import List
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    # Allows all origins - use specific origins in production
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 
 # Data model
 class RowData(BaseModel):
@@ -24,6 +37,7 @@ async def get_data():
 # Create new row
 @app.post("/data", response_model=RowData)
 async def create_data(row: RowData):
+    print(row)
     row.id = max((r.id for r in database), default=0) + 1
     database.append(row)
     return row

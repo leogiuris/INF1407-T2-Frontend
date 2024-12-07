@@ -1,22 +1,22 @@
-const API_URL = "http://127.0.0.1:8000"; // Replace with your actual API endpoint
-
 interface RowData {
     id: number;
     col_A: string;
     col_B: string;
 }
 
-let data: RowData[] = [];
-let nextId = 1;
+const API_URL = "http://127.0.0.1:8000"; // FastAPI server URL
 
-// Simulate API calls
+// Fetch data from API
 const fetchData = async (): Promise<RowData[]> => {
     const response = await fetch(`${API_URL}/data`);
-    if (!response.ok) throw new Error("Failed to fetch data");
+    if (!response.ok){ 
+        console.log(response.json());
+        throw new Error("Failed to update data");
+    }
     return response.json();
 };
 
-
+// Create new row in API
 const createData = async (row: Omit<RowData, "id">): Promise<RowData> => {
     const response = await fetch(`${API_URL}/data`, {
         method: "POST",
@@ -26,15 +26,22 @@ const createData = async (row: Omit<RowData, "id">): Promise<RowData> => {
     if (!response.ok) throw new Error("Failed to create data");
     return response.json();
 };
+
+// Update existing row in API
 const updateData = async (id: number, updatedRow: Partial<RowData>): Promise<RowData | undefined> => {
     const response = await fetch(`${API_URL}/data/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedRow),
     });
-    if (!response.ok) throw new Error("Failed to update data");
+    if (!response.ok){ 
+        console.log(response.json());
+        throw new Error("Failed to update data");
+    }
     return response.json();
 };
+
+// Delete row from API
 const deleteData = async (id: number): Promise<boolean> => {
     const response = await fetch(`${API_URL}/data/${id}`, { method: "DELETE" });
     if (!response.ok) throw new Error("Failed to delete data");
@@ -48,9 +55,9 @@ const colBInput = document.getElementById("col_B") as HTMLInputElement;
 const createButton = document.getElementById("create")!;
 
 // Render the table
-const renderTable = () => {
+const renderTable = (rows: RowData[]) => {
     tableBody.innerHTML = "";
-    data.forEach((row) => {
+    rows.forEach((row) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${row.col_A}</td>
@@ -65,38 +72,50 @@ const renderTable = () => {
 
     // Add event listeners for update and delete buttons
     document.querySelectorAll(".update").forEach((button) => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", async () => {
             const id = parseInt((button as HTMLElement).getAttribute("data-id")!, 10);
-            const updatedColA = prompt("Update Column A", data.find((d) => d.id === id)?.col_A || "");
-            const updatedColB = prompt("Update Column B", data.find((d) => d.id === id)?.col_B || "");
+            const updatedColA = prompt("Update Column A", rows.find((d) => d.id === id)?.col_A || "");
+            const updatedColB = prompt("Update Column B", rows.find((d) => d.id === id)?.col_B || "");
             if (updatedColA !== null && updatedColB !== null) {
-                updateData(id, { col_A: updatedColA, col_B: updatedColB }).then(renderTable);
+                await updateData(id, { col_A: updatedColA, col_B: updatedColB });
+                const updatedRows = await fetchData();
+                renderTable(updatedRows);
             }
         });
     });
 
     document.querySelectorAll(".delete").forEach((button) => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", async () => {
             const id = parseInt((button as HTMLElement).getAttribute("data-id")!, 10);
-            deleteData(id).then(renderTable);
+            await deleteData(id);
+            const updatedRows = await fetchData();
+            renderTable(updatedRows);
         });
     });
 };
 
 // Add a new row
-createButton.addEventListener("click", () => {
+createButton.addEventListener("click", async () => {
     const colA = colAInput.value.trim();
     const colB = colBInput.value.trim();
     if (colA && colB) {
-        createData({ col_A: colA, col_B: colB }).then(renderTable);
+        await createData({ col_A: colA, col_B: colB });
         colAInput.value = "";
         colBInput.value = "";
+        const updatedRows = await fetchData();
+        renderTable(updatedRows);
     } else {
         alert("Both fields are required!");
     }
 });
 
-// Initial fetch and render
-fetchData().then(renderTable);
-
-
+// Fetch data on page load
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const rows = await fetchData();
+        renderTable(rows);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        alert("Failed to load data. Please try again later.");
+    }
+});
