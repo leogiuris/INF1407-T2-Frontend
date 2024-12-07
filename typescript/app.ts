@@ -1,4 +1,4 @@
-const backendAddress = 'http://127.0.0.1:/api/';
+const API_URL = "http://127.0.0.1:8000"; // Replace with your actual API endpoint
 
 interface RowData {
     id: number;
@@ -10,27 +10,35 @@ let data: RowData[] = [];
 let nextId = 1;
 
 // Simulate API calls
-const fetchData = (): Promise<RowData[]> => Promise.resolve(data);
-const createData = (row: Omit<RowData, "id">): Promise<RowData> => {
-    const newRow = { id: nextId++, ...row };
-    data.push(newRow);
-    return Promise.resolve(newRow);
+const fetchData = async (): Promise<RowData[]> => {
+    const response = await fetch(`${API_URL}/data`);
+    if (!response.ok) throw new Error("Failed to fetch data");
+    return response.json();
 };
-const updateData = (id: number, updatedRow: Partial<RowData>): Promise<RowData | undefined> => {
-    const index = data.findIndex((item) => item.id === id);
-    if (index !== -1) {
-        data[index] = { ...data[index], ...updatedRow };
-        return Promise.resolve(data[index]);
-    }
-    return Promise.resolve(undefined);
+
+
+const createData = async (row: Omit<RowData, "id">): Promise<RowData> => {
+    const response = await fetch(`${API_URL}/data`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(row),
+    });
+    if (!response.ok) throw new Error("Failed to create data");
+    return response.json();
 };
-const deleteData = (id: number): Promise<boolean> => {
-    const index = data.findIndex((item) => item.id === id);
-    if (index !== -1) {
-        data.splice(index, 1);
-        return Promise.resolve(true);
-    }
-    return Promise.resolve(false);
+const updateData = async (id: number, updatedRow: Partial<RowData>): Promise<RowData | undefined> => {
+    const response = await fetch(`${API_URL}/data/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedRow),
+    });
+    if (!response.ok) throw new Error("Failed to update data");
+    return response.json();
+};
+const deleteData = async (id: number): Promise<boolean> => {
+    const response = await fetch(`${API_URL}/data/${id}`, { method: "DELETE" });
+    if (!response.ok) throw new Error("Failed to delete data");
+    return true;
 };
 
 // DOM Elements
