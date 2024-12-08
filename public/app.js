@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const API_URL = 'http://127.0.0.1:8000'; // Replace with your backend URL
-const LOGIN_URL = 'http://127.0.0.1:8000/accounts/token-auth/'; // Replace with your login endpoint
+const API_URL = 'http://127.0.0.1:8000/api/resenhas/'; // Replace with your backend URL
+const LOGIN_URL = 'http://127.0.0.1:8000/api/accounts/token-auth/'; // Replace with your login endpoint
 let reviews = [];
 let currentUser = null;
 let authToken = null;
@@ -152,7 +152,7 @@ addReviewForm.addEventListener('submit', (e) => __awaiter(void 0, void 0, void 0
     const newReview = { product, brand, content, author, score, product_url };
     try {
         console.log(newReview);
-        const response = yield fetch(API_URL + "/api/resenhas/post/", {
+        const response = yield fetch(API_URL + "post/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ function editReview(id) {
         if (newContent === null)
             return;
         try {
-            const response = yield fetch(`${API_URL}${id}/`, {
+            const response = yield fetch(`${API_URL}update/${id}/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ function deleteReview(id) {
         if (!confirm('Are you sure you want to delete this review?'))
             return;
         try {
-            const response = yield fetch(`${API_URL}/api/resenhas/${id}/`, {
+            const response = yield fetch(`${API_URL}delete/${id}/`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Token ${authToken}`

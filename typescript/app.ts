@@ -194,7 +194,7 @@ async function editReview(id: number) {
     if (newContent === null) return;
 
     try {
-        const response = await fetch(`${API_URL}update/${id}`, {
+        const response = await fetch(`${API_URL}update/${id}/`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
