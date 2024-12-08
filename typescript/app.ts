@@ -1,4 +1,3 @@
-// typescript/app.ts
 
 interface Review { 
     id: number;
@@ -23,6 +22,9 @@ const loginForm = document.getElementById('login-form') as HTMLFormElement;
 const logoutButton = document.getElementById('logout') as HTMLButtonElement;
 const reviewTableBody = document.getElementById('reviews-body') as HTMLTableSectionElement;
 const addReviewForm = document.getElementById('add-review-form') as HTMLFormElement;
+const authSection = document.getElementById('auth-section') as HTMLElement;
+const contentSection = document.getElementById('content-section') as HTMLElement;
+const userInfo = document.getElementById('user-info') as HTMLElement;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
@@ -88,9 +90,15 @@ logoutButton.addEventListener('click', () => {
 // Fetch Reviews from Backend
 async function fetchReviews() {
     try {
+        const headers: HeadersInit = {};
+        if (authToken) {
+            headers['Authorization'] = `Token ${authToken}`;
+        }
+
         const response = await fetch(API_URL, {
-            headers: authToken ? { 'Authorization': `Token ${authToken}` } : {}
+            headers: headers
         });
+
         if (response.ok) {
             reviews = await response.json();
             displayReviews();
@@ -144,6 +152,18 @@ function displayReviews() {
     });
 }
 
+// Escape HTML to Prevent XSS
+function escapeHtml(text: string): string {
+    const map: { [key: string]: string } = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 // Handle Add Review
 addReviewForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -193,6 +213,12 @@ async function editReview(id: number) {
     const newContent = prompt('Enter new content:', review.content);
     if (newContent === null) return;
 
+    const trimmedContent = newContent.trim();
+    if (trimmedContent === '') {
+        alert('Content cannot be empty.');
+        return;
+    }
+
     try {
         const response = await fetch(`${API_URL}update/${id}/`, {
             method: 'PUT',
@@ -200,7 +226,7 @@ async function editReview(id: number) {
                 'Content-Type': 'application/json',
                 'Authorization': `Token ${authToken}`
             },
-            body: JSON.stringify({ ...review, content: newContent })
+            body: JSON.stringify({ ...review, content: trimmedContent })
         });
 
         if (response.ok) {

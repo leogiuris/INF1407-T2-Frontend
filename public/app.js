@@ -1,5 +1,4 @@
 "use strict";
-// typescript/app.ts
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const API_URL = 'http://127.0.0.1:8000/api/resenhas/'; // Replace with your backend URL
+const API_URL = 'http://127.0.0.1:8000/api/resenhas'; // Replace with your backend URL
 const LOGIN_URL = 'http://127.0.0.1:8000/api/accounts/token-auth/'; // Replace with your login endpoint
 let reviews = [];
 let currentUser = null;
@@ -19,6 +18,9 @@ const loginForm = document.getElementById('login-form');
 const logoutButton = document.getElementById('logout');
 const reviewTableBody = document.getElementById('reviews-body');
 const addReviewForm = document.getElementById('add-review-form');
+const authSection = document.getElementById('auth-section');
+const contentSection = document.getElementById('content-section');
+const userInfo = document.getElementById('user-info');
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
     loadAuth();
@@ -82,8 +84,12 @@ logoutButton.addEventListener('click', () => {
 function fetchReviews() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const response = yield fetch(API_URL, {
-                headers: authToken ? { 'Authorization': `Token ${authToken}` } : {}
+            const headers = {};
+            if (authToken) {
+                headers['Authorization'] = `Token ${authToken}`;
+            }
+            const response = yield fetch(API_URL + "/", {
+                headers: headers
             });
             if (response.ok) {
                 reviews = yield response.json();
@@ -136,6 +142,17 @@ function displayReviews() {
         });
     });
 }
+// Escape HTML to Prevent XSS
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+}
 // Handle Add Review
 addReviewForm.addEventListener('submit', (e) => __awaiter(void 0, void 0, void 0, function* () {
     e.preventDefault();
@@ -152,7 +169,7 @@ addReviewForm.addEventListener('submit', (e) => __awaiter(void 0, void 0, void 0
     const newReview = { product, brand, content, author, score, product_url };
     try {
         console.log(newReview);
-        const response = yield fetch(API_URL + "post/", {
+        const response = yield fetch(API_URL + "/post/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -183,14 +200,19 @@ function editReview(id) {
         const newContent = prompt('Enter new content:', review.content);
         if (newContent === null)
             return;
+        const trimmedContent = newContent.trim();
+        if (trimmedContent === '') {
+            alert('Content cannot be empty.');
+            return;
+        }
         try {
-            const response = yield fetch(`${API_URL}update/${id}/`, {
+            const response = yield fetch(`${API_URL}/update/${id}/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Token ${authToken}`
                 },
-                body: JSON.stringify(Object.assign(Object.assign({}, review), { content: newContent }))
+                body: JSON.stringify(Object.assign(Object.assign({}, review), { content: trimmedContent }))
             });
             if (response.ok) {
                 const updatedReview = yield response.json();
@@ -213,7 +235,7 @@ function deleteReview(id) {
         if (!confirm('Are you sure you want to delete this review?'))
             return;
         try {
-            const response = yield fetch(`${API_URL}delete/${id}/`, {
+            const response = yield fetch(`${API_URL}/delete/${id}/`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Token ${authToken}`
