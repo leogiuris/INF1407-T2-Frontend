@@ -1,85 +1,83 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RowData CRUD App</title>
+    <title>Product Reviews</title>
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .form-group {
-            margin: 10px 0;
-        }
+        /* Basic styling for layout */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #auth-section, #content-section { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { margin-right: 5px; }
     </style>
 </head>
 <body>
-    <h1>RowData CRUD Application</h1>
+    <h1>Product Reviews</h1>
 
-    <!-- Login Section -->
-    <div>
-        <button id="login">Login</button>
-        <input type="hidden" id="token" />
+    <!-- Authentication Section -->
+    <div id="auth-section">
+        <h2>Login</h2>
+        <form id="login-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required>
+            <br><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+            <br><br>
+            <button type="submit">Login</button>
+        </form>
     </div>
 
-    <hr />
+    <!-- Content Section -->
+    <div id="content-section" style="display: none;">
+        <div>
+            <span id="user-info"></span>
+            <button id="logout">Logout</button>
+        </div>
 
-    <!-- Data Table -->
-    <h2>Data Table</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Content</th>
-                <th>Brand</th>
-                <th>Date Posted</th>
-                <th>Author</th>
-                <th>Product URL</th>
-                <th>Score</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-            <!-- Rows will be dynamically inserted here -->
-        </tbody>
-    </table>
-
-    <hr />
-
-    <!-- Form to Add New Data -->
-    <h2>Add New Row</h2>
-    <div>
-        <div class="form-group">
+        <!-- Add Review Form -->
+        <h2>Add New Review</h2>
+        <form id="add-review-form">
             <label for="product">Product:</label>
-            <input type="text" id="product" />
-        </div>
-        <div class="form-group">
-            <label for="content">Content:</label>
-            <input type="text" id="content" />
-        </div>
-        <div class="form-group">
+            <input type="text" id="product" required>
+            <br><br>
             <label for="brand">Brand:</label>
-            <input type="text" id="brand" />
-        </div>
-        <div class="form-group">
-            <label for="product_url">Product URL:</label>
-            <input type="text" id="product_url" />
-        </div>
-        <div class="form-group">
+            <input type="text" id="brand" required>
+            <br><br>
+            <label for="content">Content:</label>
+            <input type="text" id="content" required>
+            <br><br>
             <label for="score">Score:</label>
-            <input type="number" id="score" step="0.1" />
-        </div>
-        <button id="create">Add Row</button>
+            <input type="number" id="score" min="1" max="5" required>
+            <br><br>
+            <label for="product_url">Product URL:</label>
+            <input type="url" id="product_url" required>
+            <br><br>
+            <button type="submit">Add Review</button>
+        </form>
+
+        <!-- Reviews Table -->
+        <h2>All Reviews</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Brand</th>
+                    <th>Content</th>
+                    <th>Score</th>
+                    <th>Date Posted</th>
+                    <th>Author</th>
+                    <th>Product Link</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="reviews-body">
+                <!-- Reviews will be populated here -->
+            </tbody>
+        </table>
     </div>
 
     <script src="app.js"></script>

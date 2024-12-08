@@ -1,4 +1,6 @@
-interface RowData {
+// typescript/app.ts
+
+interface Review { 
     id: number;
     product: string;
     content: string;
@@ -9,119 +11,232 @@ interface RowData {
     score: number;
 }
 
-const API_URL = "http://127.0.0.1:8000"; // Replace with your Django REST API URL
+const API_URL = 'http://127.0.0.1:8000'; // Replace with your backend URL
+const LOGIN_URL = 'http://127.0.0.1:8000/accounts/token-auth/'; // Replace with your login endpoint
 
-// Fetch data from API
-const fetchData = async (): Promise<RowData[]> => {
-    const response = await fetch(`${API_URL}/items/`);
-    if (!response.ok) throw new Error("Failed to fetch data");
-    return response.json();
-};
-
-// Create new item in API
-const createData = async (
-    row: Omit<RowData, "id" | "date_posted" | "author">
-): Promise<RowData> => {
-    const token = (document.getElementById("token") as HTMLInputElement).value;
-    const response = await fetch(`${API_URL}/items/`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(row),
-    });
-    if (!response.ok) throw new Error("Failed to create data");
-    return response.json();
-};
+let reviews: Review[] = [];
+let currentUser: string | null = null;
+let authToken: string | null = null;
 
 // DOM Elements
-const tableBody = document.getElementById("table-body")!;
-const productInput = document.getElementById("product") as HTMLInputElement;
-const contentInput = document.getElementById("content") as HTMLInputElement;
-const brandInput = document.getElementById("brand") as HTMLInputElement;
-const productUrlInput = document.getElementById("product_url") as HTMLInputElement;
-const scoreInput = document.getElementById("score") as HTMLInputElement;
-const createButton = document.getElementById("create")!;
-const loginButton = document.getElementById("login")!;
-const tokenInput = document.getElementById("token") as HTMLInputElement;
+const loginForm = document.getElementById('login-form') as HTMLFormElement;
+const logoutButton = document.getElementById('logout') as HTMLButtonElement;
+const reviewTableBody = document.getElementById('reviews-body') as HTMLTableSectionElement;
+const addReviewForm = document.getElementById('add-review-form') as HTMLFormElement;
 
-// Render the table
-const renderTable = (rows: RowData[]) => {
-    tableBody.innerHTML = "";
-    rows.forEach((row) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${row.product}</td>
-            <td>${row.content}</td>
-            <td>${row.brand}</td>
-            <td>${row.date_posted}</td>
-            <td>${row.author}</td>
-            <td><a href="${row.product_url}" target="_blank">${row.product_url}</a></td>
-            <td>${row.score}</td>
+// Initialize App
+document.addEventListener('DOMContentLoaded', () => {
+    loadAuth();
+    fetchReviews();
+});
+
+// Load Authentication from localStorage
+function loadAuth() {
+    authToken = localStorage.getItem('authToken');
+    currentUser = localStorage.getItem('currentUser');
+    if (authToken) {
+        (document.getElementById('auth-section') as HTMLElement).style.display = 'none';
+        (document.getElementById('content-section') as HTMLElement).style.display = 'block';
+        (document.getElementById('user-info') as HTMLElement).textContent = `Logged in as ${currentUser}`;
+    } else {
+        (document.getElementById('auth-section') as HTMLElement).style.display = 'block';
+        (document.getElementById('content-section') as HTMLElement).style.display = 'none';
+    }
+}
+
+// Handle Login
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = (document.getElementById('username') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+
+    try {
+        const response = await fetch(LOGIN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            authToken = data.token;
+            currentUser = username;
+            if (authToken) {
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('currentUser', currentUser);
+            } else {
+                console.error('Received null authToken from backend.');
+            }
+            loadAuth();
+        } else {
+            alert('Login failed');
+        }
+    } catch (error) {
+        console.error('Error during login:', error);
+    }
+});
+
+// Handle Logout
+logoutButton.addEventListener('click', () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    authToken = null;
+    currentUser = null;
+    loadAuth();
+});
+
+// Fetch Reviews from Backend
+async function fetchReviews() {
+    try {
+        const response = await fetch(API_URL, {
+            headers: authToken ? { 'Authorization': `Token ${authToken}` } : {}
+        });
+        if (response.ok) {
+            reviews = await response.json();
+            displayReviews();
+        } else {
+            console.error('Failed to fetch reviews');
+        }
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+    }
+}
+
+// Display Reviews in Table
+function displayReviews() {
+    reviewTableBody.innerHTML = '';
+    reviews.forEach(review => {
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td>${review.product}</td>
+            <td>${review.brand}</td>
+            <td>${review.content}</td>
+            <td>${review.score}</td>
+            <td>${review.date_posted}</td>
+            <td>${review.author}</td>
+            <td><a href="${review.product_url}" target="_blank">Link</a></td>
+            <td>
+                ${currentUser === review.author ? `
+                    <button class="edit-button" data-id="${review.id}">Edit</button>
+                    <button class="delete-button" data-id="${review.id}">Delete</button>
+                ` : ''}
+            </td>
         `;
-        tableBody.appendChild(tr);
+        reviewTableBody.appendChild(row);
     });
-};
 
-// Add a new row
-createButton.addEventListener("click", async () => {
-    const product = productInput.value.trim();
-    const content = contentInput.value.trim();
-    const brand = brandInput.value.trim();
-    const product_url = productUrlInput.value.trim();
-    const score = parseFloat(scoreInput.value.trim());
+    // Attach Event Listeners to Newly Added Buttons
+    const editButtons = document.querySelectorAll('.edit-button');
+    editButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const id = parseInt(button.getAttribute('data-id') || '0');
+            editReview(id);
+        });
+    });
 
-    if (!product || !content || !brand || !product_url || isNaN(score)) {
-        alert("All fields are required!");
+    const deleteButtons = document.querySelectorAll('.delete-button');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const id = parseInt(button.getAttribute('data-id') || '0');
+            deleteReview(id);
+        });
+    });
+}
+
+// Handle Add Review
+addReviewForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!authToken) {
+        alert('You must be logged in to add a review.');
         return;
     }
 
-    try {
-        await createData({ product, content, brand, product_url, score });
-        productInput.value = "";
-        contentInput.value = "";
-        brandInput.value = "";
-        productUrlInput.value = "";
-        scoreInput.value = "";
-        const updatedRows = await fetchData();
-        renderTable(updatedRows);
-    } catch (error) {
-        alert("Failed to create item. Make sure you are logged in.");
-        console.error(error);
-    }
-});
+    const product = (document.getElementById('product') as HTMLInputElement).value;
+    const brand = (document.getElementById('brand') as HTMLInputElement).value;
+    const content = (document.getElementById('content') as HTMLInputElement).value;
+    const score = parseInt((document.getElementById('score') as HTMLInputElement).value);
+    const product_url = (document.getElementById('product_url') as HTMLInputElement).value;
 
-// Login functionality
-loginButton.addEventListener("click", async () => {
-    const username = prompt("Username:") || "";
-    const password = prompt("Password:") || "";
+    const newReview = { product, brand, content, score, product_url };
 
     try {
-        const response = await fetch(`${API_URL}/api/token/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
+        const response = await fetch(API_URL+"/api/resenhas/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${authToken}`
+            },
+            body: JSON.stringify(newReview)
         });
 
-        if (!response.ok) throw new Error("Login failed");
-
-        const data = await response.json();
-        tokenInput.value = data.access; // Store JWT token
-        alert("Login successful!");
+        if (response.ok) {
+            const createdReview = await response.json();
+            reviews.push(createdReview);
+            displayReviews();
+            addReviewForm.reset();
+        } else {
+            alert('Failed to add review');
+        }
     } catch (error) {
-        alert("Login failed. Please check your credentials.");
-        console.error(error);
+        console.error('Error adding review:', error);
     }
 });
 
-// Fetch data on page load
-document.addEventListener("DOMContentLoaded", async () => {
+// Edit Review Function
+async function editReview(id: number) {
+    const review = reviews.find(r => r.id === id);
+    if (!review) return;
+
+    const newContent = prompt('Enter new content:', review.content);
+    if (newContent === null) return;
+
     try {
-        const rows = await fetchData();
-        renderTable(rows);
+        const response = await fetch(`${API_URL}${id}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${authToken}`
+            },
+            body: JSON.stringify({ ...review, content: newContent })
+        });
+
+        if (response.ok) {
+            const updatedReview = await response.json();
+            const index = reviews.findIndex(r => r.id === id);
+            reviews[index] = updatedReview;
+            displayReviews();
+        } else {
+            alert('Failed to update review');
+        }
     } catch (error) {
-        console.error("Error fetching data:", error);
-        alert("Failed to load data. Please try again later.");
+        console.error('Error updating review:', error);
     }
-});
+}
+
+// Delete Review Function
+async function deleteReview(id: number) {
+    if (!confirm('Are you sure you want to delete this review?')) return;
+
+    try {
+        const response = await fetch(`${API_URL}${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${authToken}`
+            }
+        });
+
+        if (response.ok) {
+            reviews = reviews.filter(r => r.id !== id);
+            displayReviews();
+        } else {
+            alert('Failed to delete review');
+        }
+    } catch (error) {
+        console.error('Error deleting review:', error);
+    }
+}
+
+// Expose Functions Globally Using Type Assertions
+(window as any).editReview = editReview;
+(window as any).deleteReview = deleteReview;
