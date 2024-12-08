@@ -28,8 +28,8 @@ const userInfo = document.getElementById('user-info') as HTMLElement;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
-    loadAuth();
     fetchReviews();
+    loadAuth();
 });
 
 // Load Authentication from localStorage
