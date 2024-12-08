@@ -10,8 +10,8 @@ interface Review {
     score: number;
 }
 
-const API_URL = 'http://127.0.0.1:8000/api/resenhas/'; // Replace with your backend URL
-const LOGIN_URL = 'http://127.0.0.1:8000/api/accounts/token-auth/'; // Replace with your login endpoint
+const API_URL = 'http://ec2-98-83-16-69.compute-1.amazonaws.com:8000/api/resenhas/'; // Replace with your backend URL
+const LOGIN_URL = 'http://ec2-98-83-16-69.compute-1.amazonaws.com:8000/api/accounts/token-auth/'; // Replace with your login endpoint
 
 let reviews: Review[] = [];
 let currentUser: string | null = null;
