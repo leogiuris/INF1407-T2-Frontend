@@ -11,8 +11,8 @@ interface Review {
     score: number;
 }
 
-const API_URL = 'http://127.0.0.1:8000'; // Replace with your backend URL
-const LOGIN_URL = 'http://127.0.0.1:8000/accounts/token-auth/'; // Replace with your login endpoint
+const API_URL = 'http://127.0.0.1:8000/api/resenhas/'; // Replace with your backend URL
+const LOGIN_URL = 'http://127.0.0.1:8000/api/accounts/token-auth/'; // Replace with your login endpoint
 
 let reviews: Review[] = [];
 let currentUser: string | null = null;
@@ -88,7 +88,7 @@ logoutButton.addEventListener('click', () => {
 // Fetch Reviews from Backend
 async function fetchReviews() {
     try {
-        const response = await fetch(API_URL +"/api/resenhas/", {
+        const response = await fetch(API_URL, {
             headers: authToken ? { 'Authorization': `Token ${authToken}` } : {}
         });
         if (response.ok) {
@@ -163,7 +163,7 @@ addReviewForm.addEventListener('submit', async (e) => {
 
     try {
         console.log(newReview);
-        const response = await fetch(API_URL+"/api/resenhas/post/", {
+        const response = await fetch(API_URL+"post/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -194,7 +194,7 @@ async function editReview(id: number) {
     if (newContent === null) return;
 
     try {
-        const response = await fetch(`${API_URL}${id}/`, {
+        const response = await fetch(`${API_URL}update/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -221,7 +221,7 @@ async function deleteReview(id: number) {
     if (!confirm('Are you sure you want to delete this review?')) return;
 
     try {
-        const response = await fetch(`${API_URL}/api/resenhas/${id}/`, {
+        const response = await fetch(`${API_URL}delete/${id}/`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Token ${authToken}`
