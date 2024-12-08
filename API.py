@@ -23,6 +23,10 @@ class RowData(BaseModel):
     col_A: str
     col_B: str
 
+class CreateRowData(BaseModel):  # Separate model for creation
+    col_A: str
+    col_B: str
+    
 # Dummy database
 database = [
     RowData(id=1, col_A="Sample A1", col_B="Sample B1"),
@@ -30,20 +34,21 @@ database = [
 ]
 
 # Get all data
-@app.get("/data", response_model=List[RowData])
+@app.get("/api/data", response_model=List[RowData])
 async def get_data():
     return database
 
-# Create new row
-@app.post("/data", response_model=RowData)
-async def create_data(row: RowData):
-    print(row)
-    row.id = max((r.id for r in database), default=0) + 1
-    database.append(row)
-    return row
+# Create new row, receive row without id
+@app.post("/api/data", response_model=RowData)
+async def create_data(row: CreateRowData):
+    new_id = max((r.id for r in database), default=0) + 1
+    new_row = RowData(id=new_id, col_A=row.col_A, col_B=row.col_B)
+    database.append(new_row)
+    return new_row
+
 
 # Update a row
-@app.put("/data/{row_id}", response_model=RowData)
+@app.put("/api/data/{row_id}", response_model=RowData)
 async def update_data(row_id: int, updated_row: RowData):
     for idx, row in enumerate(database):
         if row.id == row_id:
@@ -52,7 +57,7 @@ async def update_data(row_id: int, updated_row: RowData):
     raise HTTPException(status_code=404, detail="Row not found")
 
 # Delete a row
-@app.delete("/data/{row_id}")
+@app.delete("/api/data/{row_id}")
 async def delete_data(row_id: int):
     for row in database:
         if row.id == row_id:

@@ -1,53 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
-    <script src="javascript/script.js" defer></script>
-    <title>CRUD App</title>
+    <title>RowData CRUD App</title>
     <style>
         table {
             width: 100%;
             border-collapse: collapse;
         }
-
-        th,
-        td {
-            border: 1px solid #ddd;
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
             padding: 8px;
             text-align: left;
         }
-
         th {
-            background-color: #f4f4f4;
+            background-color: #f2f2f2;
         }
-
-        .form-container {
-            margin-bottom: 1em;
+        .form-group {
+            margin: 10px 0;
         }
     </style>
 </head>
-
 <body>
-    <h1>CRUD App</h1>
-    <div class="form-container">
-        <input type="text" id="col_A" placeholder="Column A">
-        <input type="text" id="col_B" placeholder="Column B">
-        <button id="create">Create</button>
+    <h1>RowData CRUD Application</h1>
+
+    <!-- Login Section -->
+    <div>
+        <button id="login">Login</button>
+        <input type="hidden" id="token" />
     </div>
+
+    <hr />
+
+    <!-- Data Table -->
+    <h2>Data Table</h2>
     <table>
         <thead>
             <tr>
-                <th>col_A</th>
-                <th>col_B</th>
-                <th>Actions</th>
+                <th>Product</th>
+                <th>Content</th>
+                <th>Brand</th>
+                <th>Date Posted</th>
+                <th>Author</th>
+                <th>Product URL</th>
+                <th>Score</th>
             </tr>
         </thead>
-        <tbody id="table-body"></tbody>
+        <tbody id="table-body">
+            <!-- Rows will be dynamically inserted here -->
+        </tbody>
     </table>
+
+    <hr />
+
+    <!-- Form to Add New Data -->
+    <h2>Add New Row</h2>
+    <div>
+        <div class="form-group">
+            <label for="product">Product:</label>
+            <input type="text" id="product" />
+        </div>
+        <div class="form-group">
+            <label for="content">Content:</label>
+            <input type="text" id="content" />
+        </div>
+        <div class="form-group">
+            <label for="brand">Brand:</label>
+            <input type="text" id="brand" />
+        </div>
+        <div class="form-group">
+            <label for="product_url">Product URL:</label>
+            <input type="text" id="product_url" />
+        </div>
+        <div class="form-group">
+            <label for="score">Score:</label>
+            <input type="number" id="score" step="0.1" />
+        </div>
+        <button id="create">Add Row</button>
+    </div>
+
     <script src="app.js"></script>
 </body>
-
 </html>
