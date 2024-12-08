@@ -146,11 +146,13 @@ addReviewForm.addEventListener('submit', (e) => __awaiter(void 0, void 0, void 0
     const product = document.getElementById('product').value;
     const brand = document.getElementById('brand').value;
     const content = document.getElementById('content').value;
+    const author = currentUser;
     const score = parseInt(document.getElementById('score').value);
     const product_url = document.getElementById('product_url').value;
-    const newReview = { product, brand, content, score, product_url };
+    const newReview = { product, brand, content, author, score, product_url };
     try {
-        const response = yield fetch(API_URL + "/api/resenhas/", {
+        console.log(newReview);
+        const response = yield fetch(API_URL + "/api/resenhas/post/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -211,7 +213,7 @@ function deleteReview(id) {
         if (!confirm('Are you sure you want to delete this review?'))
             return;
         try {
-            const response = yield fetch(`${API_URL}${id}/`, {
+            const response = yield fetch(`${API_URL}/api/resenhas/${id}/`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Token ${authToken}`

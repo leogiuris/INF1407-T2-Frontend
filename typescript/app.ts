@@ -88,7 +88,7 @@ logoutButton.addEventListener('click', () => {
 // Fetch Reviews from Backend
 async function fetchReviews() {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(API_URL +"/api/resenhas/", {
             headers: authToken ? { 'Authorization': `Token ${authToken}` } : {}
         });
         if (response.ok) {
@@ -155,13 +155,15 @@ addReviewForm.addEventListener('submit', async (e) => {
     const product = (document.getElementById('product') as HTMLInputElement).value;
     const brand = (document.getElementById('brand') as HTMLInputElement).value;
     const content = (document.getElementById('content') as HTMLInputElement).value;
+    const author = currentUser as string;
     const score = parseInt((document.getElementById('score') as HTMLInputElement).value);
     const product_url = (document.getElementById('product_url') as HTMLInputElement).value;
 
-    const newReview = { product, brand, content, score, product_url };
+    const newReview = { product, brand, content,author, score, product_url };
 
     try {
-        const response = await fetch(API_URL+"/api/resenhas/", {
+        console.log(newReview);
+        const response = await fetch(API_URL+"/api/resenhas/post/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -219,7 +221,7 @@ async function deleteReview(id: number) {
     if (!confirm('Are you sure you want to delete this review?')) return;
 
     try {
-        const response = await fetch(`${API_URL}${id}/`, {
+        const response = await fetch(`${API_URL}/api/resenhas/${id}/`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Token ${authToken}`
